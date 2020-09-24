@@ -1,59 +1,68 @@
-version: "3"
+version: '3.2'
+
 services:
-    elasticsearch:
-        image: elasticsearch:7.7.0
-        container_name: elasticsearch
-        hostname: elasticsearch
-        environment:
-            - "discovery.type=single-node"
-        ports:
-            - 9200:9200
-            - 9300:9300
-        volumes:
-        - './elasticsearch/elasticsearch.yml:/usr/local/bin/elasticsearch.yml'
-        networks:
-            - elknetwork
-    kibana:
-        image: kibana:7.7.0
-        container_name: kibana
-        hostname: kibana
-        ports:
-            - 5601:5601
-        links:
-            - elasticsearch:elasticsearch
-        volumes:
-            - ./kibana/kibana.yml:/usr/local/bin/kibana.yml
-        depends_on:
-          - elasticsearch
-        networks:
-          - elknetwork
-    logstash:
-        image: logstash:7.7.0
-        container_name: logstash
-        hostname: logstash
-        ports:
-            - 9600:9600
-            - 8089:8089
-        volumes:
-          - ./logstash/logstash.conf:/usr/local/bin/logstash.conf
-          - ./logstash/logstash.yml:/usr/local/bin/logstash.yml
-        links:
-            - elasticsearch:elasticsearch
-        depends_on:
-          - elasticsearch
-        networks:
-          - elknetwork
-    
-    # nginx-conf:
-    #     build:
-    #         context: ./nginx-conf/
-    #           I’mdockerfile: Dockerfile
-    #     container_name: nginx
-    #     restart: always
-    #     ports:
-    #         - 80:80
-    #         - 443:443
+  elasticsearch:
+    build:
+      context: elasticsearch/
+    volumes:
+      - type: bind
+        source: ./elasticsearch/config/elasticsearch.yml
+        target: /usr/share/elasticsearch/config/elasticsearch.yml
+        read_only: true
+      - type: volume
+        source: elasticsearch
+        target: /usr/share/elasticsearch/data
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      ES_JAVA_OPTS: "-Xmx2048m -Xms2048m"
+      ELASTIC_PASSWORD: changeme
+      discovery.type: single-node
+    networks:
+      - elknetwork
+
+  logstash:
+    build:
+      context: logstash/
+    volumes:
+      - type: bind
+        source: ./logstash/config/logstash.yml
+        target: /usr/share/logstash/config/logstash.yml
+        read_only: true
+      - type: bind
+        source: .logstash/logstash.conf
+        target: /usr/share/logstash/logstasg.conf
+        read_only: true
+    ports:
+      - "5000:5000/tcp"
+      - "5000:5000/udp"
+      - "9600:9600"
+    environment:
+      ES_JAVA_OPTS: "-Xmx2048m -Xms2048m"
+    networks:
+      - elknetwork
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    build:
+      context: kibana/
+    volumes:
+      - type: bind
+        source: ./kibana/config/kibana.yml
+        target: /usr/share/kibana/config/kibana.yml
+        read_only: true
+    ports:
+      - "5601:5601"
+    networks:
+      - elknetwork
+    depends_on:
+      - elasticsearch
 
 networks:
-    elknetwork:
-        driver: bridge
+  elknetwork:
+    driver: bridge
+
+volumes:
+  elasticsearch:
