@@ -10,7 +10,7 @@ services:
             - 9200:9200
             - 9300:9300
         volumes:
-        - './config/elasticsearch.yml:/usr/local/bin/elasticsearch.yml'
+        - './elasticsearch/elasticsearch.yml:/usr/local/bin/elasticsearch.yml'
         networks:
             - elknetwork
     kibana:
@@ -21,8 +21,8 @@ services:
             - 5601:5601
         links:
             - elasticsearch:elasticsearch
-         volumes:
-            - ./config/kibana.yml:/usr/local/bin/kibana.yml
+        volumes:
+            - ./kibana/kibana.yml:/usr/local/bin/kibana.yml
         depends_on:
           - elasticsearch
         networks:
@@ -35,8 +35,8 @@ services:
             - 9600:9600
             - 8089:8089
         volumes:
-          - ./config/logstash.conf:/usr/local/bin/logstash.conf
-          - ./config/logstash.yml:/usr/local/bin/logstash.yml
+          - ./logstash/logstash.conf:/usr/local/bin/logstash.conf
+          - ./logstash/logstash.yml:/usr/local/bin/logstash.yml
         links:
             - elasticsearch:elasticsearch
         depends_on:
