@@ -10,7 +10,6 @@ services:
             - 9200:9200
             - 9300:9300
         volumes:
-        - './scripts:/usr/local/bin/setup-users.sh:ro'
         - './config/elasticsearch.yml:/usr/local/bin/elasticsearch.yml'
         networks:
             - elknetwork
@@ -23,7 +22,6 @@ services:
         links:
             - elasticsearch:elasticsearch
          volumes:
-            - ./scripts/:/usr/local/bin/
             - ./config/kibana.yml:/usr/local/bin/kibana.yml
         depends_on:
           - elasticsearch
